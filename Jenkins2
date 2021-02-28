@@ -1,0 +1,35 @@
+node
+{
+	def mavenHome = tool name: 'maven3.6.3'
+	{
+	stage('1. codeclone')
+	{
+	
+	git credentialsId: 'Github-Credentials', url: 'https://github.com/tangumambo/maven-web-app.git'
+	}
+	stage('2. Build')
+	{
+	sh "${mavenHome}/bin/mvn package"
+	}
+	stage('3. CodeQuality')
+	{
+	"${mavenHome}/bin/mvn sonar:sonar"
+	}
+	stage('4. UploadNexus')
+	{
+     "${mavenHome}/bin/mvn deploy"
+	}
+	stage('5. Approval')
+	{
+     "Approved. Ready for deployment"
+	}
+	stage('6. DeployTomcat')
+	{
+     deploy adapters: [tomcat9(credentialsId: 'Github_Credentials', path: '', url: 'http://3.129.12.9:8080/')], contextPath: null, war: 'target/*war'
+	}
+	stage ('7. Notification)
+	{
+	emailextrecipients([developers()])
+	}
+
+}
